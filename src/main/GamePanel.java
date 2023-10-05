@@ -8,14 +8,14 @@ import java.awt.*;
 public class GamePanel extends JPanel implements Runnable {
 
     //SCREEN SETTINGS
-    final int originalTitleSize = 16;
+    final int originalTileSize = 16;
     final int scale = 3;
 
-    final int titleSize = originalTitleSize * scale;
+    public final int tileSize = originalTileSize * scale;
     final int maxScreenCol = 16;
     final int maxScreenRow = 12;
-    final int screenWidth = titleSize * maxScreenCol;
-    final int screenHeight = titleSize * maxScreenRow;
+    final int screenWidth = tileSize * maxScreenCol;
+    final int screenHeight = tileSize * maxScreenRow;
 
 
     //FPS
@@ -118,9 +118,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         Graphics2D g2 = (Graphics2D) g;
 
-        g2.setColor(Color.WHITE);
-
-        g2.fillRect(playerX, playerY, titleSize, titleSize);
+        this.player.draw(g2);
 
         g2.dispose();
     }
