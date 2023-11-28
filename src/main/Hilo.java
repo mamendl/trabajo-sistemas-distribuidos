@@ -1,5 +1,6 @@
 package main;
 
+import java.io.*;
 import java.net.*;
 
 public class Hilo implements Runnable {
@@ -12,8 +13,11 @@ public class Hilo implements Runnable {
 	
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
-		//finally{serrar el socket del cliente}
+		try(BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()))){
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 }
