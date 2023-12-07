@@ -2,4 +2,4 @@
 <!ELEMENT usuarios (usuario*)>
 <!ELEMENT usuario (nombre, clave)>
 <!ELEMENT nombre (#PCDATA)>
-<!ELEMENT contrasena (#PCDATA)>
+<!ELEMENT clave (#PCDATA)>

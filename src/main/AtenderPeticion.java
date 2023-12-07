@@ -49,7 +49,6 @@ public class AtenderPeticion implements Runnable {
 						NodeList nodes = root.getElementsByTagName("usuario");
 						/*for(int i = 0; i < nodes.getLength(); i++) {
 							Node n = nodes.item(i);
-							
 						}*/
 						corresto=true;
 					}
@@ -82,9 +81,9 @@ public class AtenderPeticion implements Runnable {
 					}
 					break;
 				}
-				//enviar en cada caso un mensaje
-				
+				oos.flush();
 				oos.writeBoolean(corresto);
+				
 				op = ois.readInt();
 				switch (op) {
 				case 1:
