@@ -12,6 +12,10 @@ import javax.swing.*;
 
 public class Ventana extends javax.swing.JFrame{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 171851709764711738L;
 	private Component jl = new JLabel("Arrastra un archivo putito");
 	
 	public Ventana() {
@@ -20,8 +24,6 @@ public class Ventana extends javax.swing.JFrame{
 		JPanel panel = new JPanel();
 		
 		panel.setLayout(new GridLayout(0,1));
-				
-		//
 		
 		frame.add(panel,BorderLayout.CENTER);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

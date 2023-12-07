@@ -12,15 +12,13 @@ public class Servidor {
 			while(true) {
 				try{
 					cliente = ss.accept();
-					Hilo r = new Hilo(cliente);
+					AtenderPeticion r = new AtenderPeticion(cliente);
 					pool.execute(r);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} 
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

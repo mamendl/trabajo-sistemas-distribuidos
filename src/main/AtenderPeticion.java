@@ -3,20 +3,107 @@ package main;
 import java.io.*;
 import java.net.*;
 
-public class Hilo implements Runnable {
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+public class AtenderPeticion implements Runnable {
 
 	private Socket s;
 	
-	public Hilo(Socket s) {
+	public AtenderPeticion(Socket s) {
 		this.s = s;
 	}
 	
 	@Override
 	public void run() {
-		try(BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()))){
-			
-		} catch (IOException e) {
+		try(ObjectOutputStream oos = new ObjectOutputStream(this.s.getOutputStream());
+				ObjectInputStream ois = new ObjectInputStream(this.s.getInputStream())){
+			int op = ois.readInt();
+			if(op!=3) {
+				String usuario = ois.readLine();
+				String clave = ois.readLine();
+				
+				File f = new File("src/datos/usuarios.xml");
+				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+				DocumentBuilder db = dbf.newDocumentBuilder();
+				Document d = db.parse(f);
+				Element root = d.getDocumentElement();
+				
+				boolean corresto = false;
+				switch (op) {
+				case 1:
+					if(root.getElementsByTagName(usuario).getLength()==0) corresto = false;
+					else {
+						NodeList nodes = root.getElementsByTagName("usuario");
+						/*for(int i = 0; i < nodes.getLength(); i++) {
+							Node n = nodes.item(i);
+							
+						}*/
+						corresto=true;
+					}
+					break;
+				case 2:
+					if(root.getElementsByTagName(usuario).getLength()==0) {
+						Element nuevoUsuario = d.createElement("usuario");
+						Element nom = d.createElement("nombre");
+						nom.setTextContent(usuario);
+						Element c = d.createElement("clave");
+						c.setTextContent(clave);
+						nuevoUsuario.appendChild(nom);
+						nuevoUsuario.appendChild(c);
+						root.appendChild(nuevoUsuario);
+						
+						TransformerFactory tf = TransformerFactory.newInstance();
+						Transformer t = tf.newTransformer();
+						DOMSource source = new DOMSource(root);
+						StreamResult result = new StreamResult(new File("src/datos/usuarios.xml"));
+						t.transform(source, result);
+						
+						oos.write("Te has registrado correctamente\r\n".getBytes());
+						
+						corresto = true;
+					} else {
+						
+						oos.write("El nombre que has introducido ya existe\r\n".getBytes());
+						
+						corresto = false;
+					}
+					break;
+				}
+				//enviar en cada caso un mensaje
+				
+				oos.writeBoolean(corresto);
+				op = ois.readInt();
+				switch (op) {
+				case 1:
+					
+					break;
+				case 2:
+					
+					break;
+				}
+			}
+		} catch (IOException | ParserConfigurationException | SAXException | TransformerException e) {
 			e.printStackTrace();
+		} finally {
+			if(this.s!=null)
+				try {
+					this.s.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 		}
 	}
 	
