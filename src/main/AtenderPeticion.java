@@ -2,6 +2,7 @@ package main;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -31,8 +32,10 @@ public class AtenderPeticion implements Runnable {
 		try(ObjectOutputStream oos = new ObjectOutputStream(this.s.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(this.s.getInputStream())){
 			int op = ois.readInt();
+			
 			if(op!=3) {
 				String usuario = ois.readLine();
+				System.out.println(usuario);
 				String clave = ois.readLine();
 				
 				File f = new File("src/datos/usuarios.xml");
@@ -70,6 +73,11 @@ public class AtenderPeticion implements Runnable {
 						StreamResult result = new StreamResult(new File("src/datos/usuarios.xml"));
 						t.transform(source, result);
 						
+						File carpeta = new File("src/datos/"+usuario);
+						System.out.println(carpeta.mkdir());
+						
+						System.out.println(carpeta.isDirectory());
+
 						oos.write("Te has registrado correctamente\r\n".getBytes());
 						
 						corresto = true;
@@ -83,7 +91,7 @@ public class AtenderPeticion implements Runnable {
 				}
 				oos.flush();
 				oos.writeBoolean(corresto);
-				
+				oos.flush();
 				op = ois.readInt();
 				switch (op) {
 				case 1:

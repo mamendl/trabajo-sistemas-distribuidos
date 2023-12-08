@@ -63,15 +63,16 @@ public class Cliente {
 				String nom = sc.nextLine();
 				System.out.print("Contraseña: ");
 				String contrasena = sc.nextLine(); 
-				oos.write((nom+"\r\n"+contrasena+"\r\n").getBytes());
+				oos.write((nom+"\r\n").getBytes());
+				oos.write((contrasena+"\r\n").getBytes());
 				oos.flush();
-				//System.out.println("Usuario: "+nom+"\nContraseña: "+contrasena);
+				System.out.println("Usuario: "+nom+"\nContraseña: "+contrasena);
 	
 				boolean correcto;
 				
 				String mensaje = ois.readLine();
 				System.out.println(mensaje);
-				//ois.reset();
+
 				correcto = ois.readBoolean();
 				switch (option) {
 				case 1:		//loggearse:
