@@ -35,10 +35,7 @@ public class AtenderPeticion implements Runnable {
 
 			if (op != 3) {
 
-				op = ois.readInt();
-
 				String usuario = ois.readLine();
-				System.out.println(usuario);
 				String clave = ois.readLine();
 
 				File f = new File("src/datos/usuarios.xml");
@@ -131,10 +128,10 @@ public class AtenderPeticion implements Runnable {
 						// archivo
 						break;
 					case 4:
+						//
 						break;
 					case 5:
-						break;
-					case 6:
+						//
 						break;
 					}
 					op = ois.readInt();
