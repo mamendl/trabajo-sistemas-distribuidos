@@ -93,11 +93,6 @@ public class AtenderPeticion implements Runnable {
 						StreamResult result = new StreamResult(new File("src/datos/usuarios.xml"));
 						t.transform(source, result);
 
-						File carpeta = new File("src/datos/" + usuario);
-						System.out.println(carpeta.mkdir());
-
-						System.out.println(carpeta.isDirectory());
-
 						try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
 								new FileOutputStream(new File("src/datos/" + usuario + "/" + usuario + ".xml"))))) {
 							bw.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n"
@@ -120,24 +115,29 @@ public class AtenderPeticion implements Runnable {
 				oos.writeBoolean(corresto);
 				oos.flush();
 				op = ois.readInt();
-				switch (op) {
-				case 1:
-					// enviar su xml
-					File fich = new File("src/datos/" + usuario + "/" + usuario + ".xml");
-					Document doc = db.parse(fich);
-					oos.writeObject(doc);
-					break;
-				case 2:
-					// recibir y añadir a su xml
-					break;
-				case 3:
-					// recibir el nombre, buscarlo, enviar un mensaje si existe o no y enviar el
-					// archivo
-					break;
-				case 4:
-					break;
-				case 5:
-					break;
+				while(op!=6&&op!=5) {
+					switch (op) {
+					case 1:
+						// enviar su xml
+						File fich = new File("src/datos/" + usuario + "/" + usuario + ".xml");
+						Document doc = db.parse(fich);
+						oos.writeObject(doc);
+						break;
+					case 2:
+						// recibir y añadir a su xml
+						break;
+					case 3:
+						// recibir el nombre, buscarlo, enviar un mensaje si existe o no y enviar el
+						// archivo
+						break;
+					case 4:
+						break;
+					case 5:
+						break;
+					case 6:
+						break;
+					}
+					op = ois.readInt();
 				}
 			}
 		} catch (IOException | ParserConfigurationException | SAXException | TransformerException e) {
