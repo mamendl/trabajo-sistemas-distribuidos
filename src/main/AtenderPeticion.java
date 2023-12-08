@@ -32,7 +32,7 @@ public class AtenderPeticion implements Runnable {
 		try(ObjectOutputStream oos = new ObjectOutputStream(this.s.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(this.s.getInputStream())){
 			int op = ois.readInt();
-			
+			ois.readInt();
 			if(op!=3) {
 				String usuario = ois.readLine();
 				System.out.println(usuario);

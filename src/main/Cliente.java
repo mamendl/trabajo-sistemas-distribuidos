@@ -74,16 +74,6 @@ public class Cliente {
 				System.out.println(mensaje);
 
 				correcto = ois.readBoolean();
-				switch (option) {
-				case 1:		//loggearse:
-					if(correcto) System.out.println("enhorabuena, te has loggeado con éxito");
-					else System.out.println("parece que ha habido un error con tu usuario y/o contraseña");
-					break;
-				case 2:		//darse de alta:
-					if(correcto) System.out.println("Te has registrado correctamente");
-					else System.out.println("Ya hay otro usuario con eso nena");
-					break;
-				}
 				
 				option = 0;
 				if(correcto) {System.out.println(":D");}
@@ -100,6 +90,7 @@ public class Cliente {
 						System.out.println("Introduce un número válido imbécil");
 					}
 				}
+				oos.writeInt(option);
 				switch (option) {
 				case 1: 
 					//consultar archivos
