@@ -126,15 +126,22 @@ public class AtenderPeticion implements Runnable {
 						String tam = ois.readLine();
 						System.out.println(nombre);
 						System.out.println(tam);
+
 						try (FileOutputStream fos = new FileOutputStream(
 								new File("src/datos/" + usuario + "/" + nombre))) {
-							byte[] buff = new byte[1024];
+							byte[] buff = new byte[1024*1024];
 							int leidos = ois.read(buff);
-							while (leidos != -1) {
+							int escritos = 0;
+							while (escritos < Integer.parseInt(tam)) { //leidos != -1 &&
+								escritos = escritos + leidos;
 								fos.write(buff, 0, leidos);
-								leidos = ois.read(buff, 0, leidos);
+								leidos = ois.read(buff);
+								System.out.println(leidos + " " + escritos);
+								// System.out.println("que esta pasando mi ciela " + leidos);
 							}
+							System.out.println("aleluia");
 						}
+
 						// añadir al xml:
 						File xml = new File("src/datos/" + usuario + "/" + usuario + ".xml");
 						Document docu = db.parse(xml);
@@ -151,16 +158,39 @@ public class AtenderPeticion implements Runnable {
 						TransformerFactory tf = TransformerFactory.newInstance();
 						Transformer t = tf.newTransformer();
 						DOMSource source = new DOMSource(r);
-						StreamResult result = new StreamResult(new File("src/datos/" + usuario + "/" + usuario + ".xml"));
+						StreamResult result = new StreamResult(
+								new File("src/datos/" + usuario + "/" + usuario + ".xml"));
 						t.transform(source, result);
 
 						break;
 					case 3:
 						// recibir el nombre, buscarlo, enviar un mensaje si existe o no y enviar el
 						// archivo
+						String nombreArchivo = ois.readLine();
+						boolean existe = false;
+						File archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+						existe = archivoAmandar.exists();
+						oos.writeBoolean(existe);
+						if (existe) {
+							// lo manda
+							oos.writeObject(archivoAmandar);
+							oos.write("Archivo mandado con éxito\r\n".getBytes());
+							oos.flush();
+						} else {
+							oos.write("Error archivo no encontrado\r\n".getBytes());
+							oos.flush();
+						}
 						break;
 					case 4:
-						//
+						// borrar archivo
+						// recibe el nombre
+						String nombreArchivoABorrar = ois.readLine();
+						File archivoABorrar = new File("src/datos/" + usuario + "/" + nombreArchivoABorrar);
+						if (archivoABorrar.delete()) {
+							oos.write("Archivo eliminado con éxito".getBytes());
+							// AQUÍ FALTARÍA ELIMINAR EL ARCHIVO DEL XML
+						} else
+							oos.write("Error: no se ha podido eliminar el archivo".getBytes());
 						break;
 					case 5:
 						//

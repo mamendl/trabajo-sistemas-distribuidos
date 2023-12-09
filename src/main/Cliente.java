@@ -80,7 +80,7 @@ public class Cliente {
 			 */
 
 			if (correcto) {
-				System.out.print("Bienvenido a Drive Safe.");
+				System.out.print("Bienvenido a Drive Safe. ");
 				while (option != 6 && option != 5) {
 					option = 0;
 					System.out.print("Seleccione una opción:\n");
@@ -90,6 +90,7 @@ public class Cliente {
 					System.out.println("4. Borrar un archivo");
 					System.out.println("5. Borrar mi usuario");
 					System.out.println("6. Desconectar");
+					
 					while (option == 0 || option > 6 || option < 0) {
 						try {
 							linea = sc.nextLine();
@@ -98,8 +99,10 @@ public class Cliente {
 							System.out.println("Introduce un número válido");
 						}
 					}
+
 					oos.writeInt(option);
 					oos.flush();
+
 					switch (option) {
 					case 1:
 						// consultar archivos
@@ -122,24 +125,30 @@ public class Cliente {
 						String ar = sc.nextLine();
 						File arch = new File(ar);
 						if (arch.exists() && !arch.isDirectory()) {
-							System.out.println("uy eso si que existe");
+							//System.out.println("uy eso si que existe");
 							oos.write((arch.getName()+"\r\n").getBytes());
 							oos.write((arch.length()+"\r\n").getBytes());
-							System.out.println(arch.getName());
+							//oos.writeObject(arch);
+							//oos.flush();
+							//System.out.println(arch.getName());
+							
+							
 							byte[] buff = new byte[1024];
 							
 							try(FileInputStream fos = new FileInputStream(arch)){
 								int leidos = fos.read(buff);
 								while(leidos!=-1) {
 									oos.write(buff, 0, leidos);
+									leidos = fos.read(buff);
 									oos.flush();
-									leidos = fos.read(buff, 0, leidos);
 								}
+								oos.write("\u001a".getBytes());
+								System.out.println("sacabó");
+								oos.flush();
 							}
 
 						} else {
 							System.out.println("Error, archivo no encontrado.");
-							// ...
 						}
 						break;
 					case 3:
