@@ -112,7 +112,7 @@ public class AtenderPeticion implements Runnable {
 				oos.writeBoolean(corresto);
 				oos.flush();
 				op = ois.readInt();
-				while(op!=6&&op!=5) {
+				while (op != 6 && op != 5) {
 					switch (op) {
 					case 1:
 						// enviar su xml
@@ -122,6 +122,38 @@ public class AtenderPeticion implements Runnable {
 						break;
 					case 2:
 						// recibir y añadir a su xml
+						String nombre = ois.readLine();
+						String tam = ois.readLine();
+						System.out.println(nombre);
+						System.out.println(tam);
+						try (FileOutputStream fos = new FileOutputStream(
+								new File("src/datos/" + usuario + "/" + nombre))) {
+							byte[] buff = new byte[1024];
+							int leidos = ois.read(buff);
+							while (leidos != -1) {
+								fos.write(buff, 0, leidos);
+								leidos = ois.read(buff, 0, leidos);
+							}
+						}
+						// añadir al xml:
+						File xml = new File("src/datos/" + usuario + "/" + usuario + ".xml");
+						Document docu = db.parse(xml);
+						Element r = docu.getDocumentElement();
+						Element archivo = docu.createElement("archivo");
+						Element nom = docu.createElement("nombre");
+						nom.setTextContent(nombre);
+						Element size = docu.createElement("size");
+						size.setTextContent(tam);
+						archivo.appendChild(nom);
+						archivo.appendChild(size);
+						r.appendChild(archivo);
+
+						TransformerFactory tf = TransformerFactory.newInstance();
+						Transformer t = tf.newTransformer();
+						DOMSource source = new DOMSource(r);
+						StreamResult result = new StreamResult(new File("src/datos/" + usuario + "/" + usuario + ".xml"));
+						t.transform(source, result);
+
 						break;
 					case 3:
 						// recibir el nombre, buscarlo, enviar un mensaje si existe o no y enviar el

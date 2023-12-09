@@ -123,6 +123,19 @@ public class Cliente {
 						File arch = new File(ar);
 						if (arch.exists() && !arch.isDirectory()) {
 							System.out.println("uy eso si que existe");
+							oos.write((arch.getName()+"\r\n").getBytes());
+							oos.write((arch.length()+"\r\n").getBytes());
+							System.out.println(arch.getName());
+							byte[] buff = new byte[1024];
+							
+							try(FileInputStream fos = new FileInputStream(arch)){
+								int leidos = fos.read(buff);
+								while(leidos!=-1) {
+									oos.write(buff, 0, leidos);
+									oos.flush();
+									leidos = fos.read(buff, 0, leidos);
+								}
+							}
 
 						} else {
 							System.out.println("Error, archivo no encontrado.");
