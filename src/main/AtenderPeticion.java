@@ -88,45 +88,58 @@ public class AtenderPeticion implements Runnable {
 					}
 					break;
 				case 2:
-					if (existeElElemento(usuario, "usuario", "src/datos/usuarios.xml")) {
-						Element nuevoUsuario = d.createElement("usuario");
-						Element nom = d.createElement("nombre");
-						nom.setTextContent(usuario);
-						Element c = d.createElement("clave");
-						c.setTextContent(clave);
-						nuevoUsuario.appendChild(nom);
-						nuevoUsuario.appendChild(c);
-						root.appendChild(nuevoUsuario);
-
-						TransformerFactory tf = TransformerFactory.newInstance();
-						Transformer t = tf.newTransformer();
-						DOMSource source = new DOMSource(root);
-						StreamResult result = new StreamResult(new File("src/datos/usuarios.xml"));
-						t.transform(source, result);
-
-						try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
-								new FileOutputStream(new File("src/datos/" + usuario + "/" + usuario + ".xml"))))) {
-							bw.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n"
-									+ "<!DOCTYPE archivos SYSTEM \"../archivos.dtd\" >\r\n" + "<archivos>\r\n"
-									+ "</archivos>");
+					while(!corresto) {
+						if (!existeElElemento(usuario, "usuario", "src/datos/usuarios.xml")) {
+							Element nuevoUsuario = d.createElement("usuario");
+							Element nom = d.createElement("nombre");
+							nom.setTextContent(usuario);
+							Element c = d.createElement("clave");
+							c.setTextContent(clave);
+							nuevoUsuario.appendChild(nom);
+							nuevoUsuario.appendChild(c);
+							root.appendChild(nuevoUsuario);
+	
+							TransformerFactory tf = TransformerFactory.newInstance();
+							Transformer t = tf.newTransformer();
+							DOMSource source = new DOMSource(root);
+							StreamResult result = new StreamResult(new File("src/datos/usuarios.xml"));
+							t.transform(source, result);
+							
+							File carpeta = new File("src/datos/" + usuario);
+							carpeta.mkdir();
+							try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
+									new FileOutputStream(new File("src/datos/" + usuario + "/" + usuario + ".xml"))))) {
+								bw.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n"
+										+ "<!DOCTYPE archivos SYSTEM \"../archivos.dtd\" >\r\n" + "<archivos>\r\n"
+										+ "</archivos>");
+							}
+	
+							this.usuario = usuario;
+							
+							oos.write("Te has registrado correctamente\r\n".getBytes());
+							
+							corresto = true;
+						} else {
+	
+							oos.write("El nombre que has introducido ya existe\r\n".getBytes());
+	
+							corresto = false;
 						}
-
-						oos.write("Te has registrado correctamente\r\n".getBytes());
-
-						corresto = true;
-					} else {
-
-						oos.write("El nombre que has introducido ya existe\r\n".getBytes());
-
-						corresto = false;
+						oos.writeBoolean(corresto);
+						oos.flush();
+						if(!corresto) {
+							usuario = ois.readLine();
+							clave = ois.readLine();
+						}
+						
 					}
 					break;
 				}
 				oos.flush();
-				oos.writeBoolean(corresto);
-				oos.flush();
+				//oos.writeBoolean(corresto);
+				//oos.flush();
 				op = ois.readInt();
-				String suXml = "src/datos/" + usuario + "/" + usuario + ".xml";
+				String suXml = "src/datos/" + this.usuario + "/" + this.usuario + ".xml";
 				while (op != 6 && op != 5) {
 					switch (op) {
 					case 1:
