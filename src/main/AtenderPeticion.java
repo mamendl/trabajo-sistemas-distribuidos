@@ -127,40 +127,51 @@ public class AtenderPeticion implements Runnable {
 						System.out.println(nombre);
 						System.out.println(tam);
 
-						try (FileOutputStream fos = new FileOutputStream(
-								new File("src/datos/" + usuario + "/" + nombre))) {
-							byte[] buff = new byte[1024*1024];
-							int leidos = ois.read(buff);
-							int escritos = 0;
-							while (escritos < Integer.parseInt(tam)) { //leidos != -1 &&
-								escritos = escritos + leidos;
-								fos.write(buff, 0, leidos);
-								leidos = ois.read(buff);
-								System.out.println(leidos + " " + escritos);
-								// System.out.println("que esta pasando mi ciela " + leidos);
-							}
-							System.out.println("aleluia");
-						}
-
-						// añadir al xml:
 						File xml = new File("src/datos/" + usuario + "/" + usuario + ".xml");
 						Document docu = db.parse(xml);
 						Element r = docu.getDocumentElement();
-						Element archivo = docu.createElement("archivo");
-						Element nom = docu.createElement("nombre");
-						nom.setTextContent(nombre);
-						Element size = docu.createElement("size");
-						size.setTextContent(tam);
-						archivo.appendChild(nom);
-						archivo.appendChild(size);
-						r.appendChild(archivo);
+						System.out.println(r.getElementsByTagName(nombre).getLength() == 0);
+						if (r.getElementsByTagName(nombre).getLength() == 0) {
+							oos.writeBoolean(true);
+							oos.flush();
+							try (FileOutputStream fos = new FileOutputStream(
+									new File("src/datos/" + usuario + "/" + nombre))) {
+								byte[] buff = new byte[1024 * 1024];
+								int leidos = ois.read(buff);
+								int escritos = 0;
+								while (escritos < Integer.parseInt(tam)) { // leidos != -1 &&
+									escritos = escritos + leidos;
+									fos.write(buff, 0, leidos);
+									leidos = ois.read(buff);
+									System.out.println(leidos + " " + escritos);
+								}
+								System.out.println("aleluia");
+							}
 
-						TransformerFactory tf = TransformerFactory.newInstance();
-						Transformer t = tf.newTransformer();
-						DOMSource source = new DOMSource(r);
-						StreamResult result = new StreamResult(
-								new File("src/datos/" + usuario + "/" + usuario + ".xml"));
-						t.transform(source, result);
+							// añadir al xml:
+
+							Element archivo = docu.createElement("archivo");
+							Element nom = docu.createElement("nombre");
+							nom.setTextContent(nombre);
+							Element size = docu.createElement("size");
+							size.setTextContent(tam);
+							archivo.appendChild(nom);
+							archivo.appendChild(size);
+							r.appendChild(archivo);
+
+							TransformerFactory tf = TransformerFactory.newInstance();
+							Transformer t = tf.newTransformer();
+							DOMSource source = new DOMSource(r);
+							StreamResult result = new StreamResult(
+									new File("src/datos/" + usuario + "/" + usuario + ".xml"));
+							t.transform(source, result);
+
+							oos.write("Archivo subido correctamente.\r\n".getBytes());
+						} else {
+							oos.writeBoolean(false);
+							oos.write("Ese archivo ya lo has subido fiera.\r\n".getBytes());
+						}
+						oos.flush();
 
 						break;
 					case 3:

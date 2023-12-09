@@ -90,7 +90,7 @@ public class Cliente {
 					System.out.println("4. Borrar un archivo");
 					System.out.println("5. Borrar mi usuario");
 					System.out.println("6. Desconectar");
-					
+
 					while (option == 0 || option > 6 || option < 0) {
 						try {
 							linea = sc.nextLine();
@@ -124,27 +124,35 @@ public class Cliente {
 						System.out.println("Introducir la ruta del archivo que desea subir:");
 						String ar = sc.nextLine();
 						File arch = new File(ar);
+						
 						if (arch.exists() && !arch.isDirectory()) {
-							//System.out.println("uy eso si que existe");
-							oos.write((arch.getName()+"\r\n").getBytes());
-							oos.write((arch.length()+"\r\n").getBytes());
-							//oos.writeObject(arch);
-							//oos.flush();
-							//System.out.println(arch.getName());
 							
+							oos.write((arch.getName() + "\r\n").getBytes());
+							oos.write((arch.length() + "\r\n").getBytes());
+							oos.flush();
 							
-							byte[] buff = new byte[1024];
-							
-							try(FileInputStream fos = new FileInputStream(arch)){
-								int leidos = fos.read(buff);
-								while(leidos!=-1) {
-									oos.write(buff, 0, leidos);
-									leidos = fos.read(buff);
+							boolean enviar = ois.readBoolean();
+
+							if(enviar) {
+								System.out.println("enviando ...");
+								byte[] buff = new byte[1024 * 1024];
+
+								try (FileInputStream fos = new FileInputStream(arch)) {
+									int leidos = fos.read(buff);
+									while (leidos != -1) {
+										oos.write(buff, 0, leidos);
+										leidos = fos.read(buff);
+										oos.flush();
+									}
+									oos.write("\u001a".getBytes());
+									System.out.println("sacabó");
 									oos.flush();
+									mensaje = ois.readLine();
+									System.out.println(mensaje);
 								}
-								oos.write("\u001a".getBytes());
-								System.out.println("sacabó");
-								oos.flush();
+							} else {
+								mensaje = ois.readLine();
+								System.out.println(mensaje);
 							}
 
 						} else {
