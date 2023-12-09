@@ -124,14 +124,24 @@ public class AtenderPeticion implements Runnable {
 						// recibir y añadir a su xml
 						String nombre = ois.readLine();
 						String tam = ois.readLine();
-						System.out.println(nombre);
-						System.out.println(tam);
+						//System.out.println(nombre);
+						//System.out.println(tam);
 
 						File xml = new File("src/datos/" + usuario + "/" + usuario + ".xml");
 						Document docu = db.parse(xml);
 						Element r = docu.getDocumentElement();
-						System.out.println(r.getElementsByTagName(nombre).getLength() == 0);
-						if (r.getElementsByTagName(nombre).getLength() == 0) {
+						
+						boolean subido = false;
+						
+						NodeList nodelits = r.getElementsByTagName("archivo");
+						for(int i = 0; i < nodelits.getLength(); i++) {
+							Element e = (Element) nodelits.item(i);
+							NodeList no = e.getElementsByTagName("nombre");
+							if(nombre.equals(no.item(0).getTextContent())) subido = true;
+						}
+							
+						
+						if (!subido) {
 							oos.writeBoolean(true);
 							oos.flush();
 							try (FileOutputStream fos = new FileOutputStream(
