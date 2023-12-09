@@ -22,6 +22,7 @@ import org.xml.sax.SAXException;
 public class AtenderPeticion implements Runnable {
 
 	private Socket s;
+	private String usuario;
 
 	public AtenderPeticion(Socket s) {
 		this.s = s;
@@ -48,40 +49,53 @@ public class AtenderPeticion implements Runnable {
 				boolean encontrado = false;
 				switch (op) {
 				case 1:
+					while (!corresto) {
+						
+						NodeList nodes = root.getElementsByTagName("usuario");
+						int i = 0;
+						do {
+							Element e = (Element) nodes.item(i);
+							Element nom = (Element) e.getElementsByTagName("nombre").item(i);
+							if (usuario.equals(nom.getTextContent())) {
+								encontrado = true;
+								System.out.println(usuario + " " + nom.getTextContent());
+								Element c = (Element) e.getElementsByTagName("clave").item(i);
+								if (clave.equals(c.getTextContent())) {
+									corresto = true;
+									System.out.println(clave.equals(c.getTextContent()));
+								} else {
+									oos.write("Contraseña incorrecta\r\n".getBytes());
+								}
+							}
+							i++;
+						} while (i < nodes.getLength() && !encontrado);
 
-					NodeList nodes = root.getElementsByTagName("usuario");
-					int i = 0;
-					do {
-						Element e = (Element) nodes.item(i);
-						Element nom = (Element) e.getElementsByTagName("nombre").item(0);
-						if (usuario.equals(nom.getTextContent())) {
-							encontrado = true;
-							Element c = (Element) e.getElementsByTagName("clave").item(0);
-							if (clave.equals(c.getTextContent()))
-								corresto = true;
-							else
-								oos.write("Contraseña incorrecta\r\n".getBytes());
+						if (corresto) {
+							this.usuario = usuario;
+							oos.write("Te has loggeado correctamente\r\n".getBytes());
 						}
-						i++;
-					} while (i < nodes.getLength() && !encontrado);
-
-					if (corresto)
-						oos.write("Te has loggeado correctamente\r\n".getBytes());
-					if (!encontrado)
-						oos.write("Error: usuario no encontrado\r\n".getBytes());
+						if (!encontrado) {
+							oos.write("Error: usuario no encontrado\r\n".getBytes());
+						}
+						
+						oos.writeBoolean(corresto);
+						oos.flush();
+						
+						if(!corresto) {
+							usuario = ois.readLine();
+							clave = ois.readLine();
+						}
+					}
 					break;
 				case 2:
-					if (root.getElementsByTagName(usuario).getLength() == 0) {
+					if (existeElElemento(usuario, "usuario", "src/datos/usuarios.xml")) {
 						Element nuevoUsuario = d.createElement("usuario");
 						Element nom = d.createElement("nombre");
 						nom.setTextContent(usuario);
 						Element c = d.createElement("clave");
 						c.setTextContent(clave);
-						// root.insertBefore(c, d)
-						// Element s = (Element) d.createTextNode("\r\n\t");
 						nuevoUsuario.appendChild(nom);
 						nuevoUsuario.appendChild(c);
-						// nuevoUsuario.setTextContent("\r\n\t");
 						root.appendChild(nuevoUsuario);
 
 						TransformerFactory tf = TransformerFactory.newInstance();
@@ -112,11 +126,12 @@ public class AtenderPeticion implements Runnable {
 				oos.writeBoolean(corresto);
 				oos.flush();
 				op = ois.readInt();
+				String suXml = "src/datos/" + usuario + "/" + usuario + ".xml";
 				while (op != 6 && op != 5) {
 					switch (op) {
 					case 1:
 						// enviar su xml
-						File fich = new File("src/datos/" + usuario + "/" + usuario + ".xml");
+						File fich = new File(suXml);
 						Document doc = db.parse(fich);
 						oos.writeObject(doc);
 						break;
@@ -124,23 +139,22 @@ public class AtenderPeticion implements Runnable {
 						// recibir y añadir a su xml
 						String nombre = ois.readLine();
 						String tam = ois.readLine();
-						//System.out.println(nombre);
-						//System.out.println(tam);
+						// System.out.println(nombre);
+						// System.out.println(tam);
 
-						File xml = new File("src/datos/" + usuario + "/" + usuario + ".xml");
+						File xml = new File(suXml);
 						Document docu = db.parse(xml);
 						Element r = docu.getDocumentElement();
-						
-						boolean subido = false;
-						
-						NodeList nodelits = r.getElementsByTagName("archivo");
-						for(int i = 0; i < nodelits.getLength(); i++) {
-							Element e = (Element) nodelits.item(i);
-							NodeList no = e.getElementsByTagName("nombre");
-							if(nombre.equals(no.item(0).getTextContent())) subido = true;
-						}
-							
-						
+
+						boolean subido = existeElElemento(nombre, "archivo", suXml);
+
+						/*
+						 * NodeList nodelits = r.getElementsByTagName("archivo"); for(int i = 0; i <
+						 * nodelits.getLength(); i++) { Element e = (Element) nodelits.item(i); NodeList
+						 * no = e.getElementsByTagName("nombre");
+						 * if(nombre.equals(no.item(0).getTextContent())) subido = true; }
+						 */
+
 						if (!subido) {
 							oos.writeBoolean(true);
 							oos.flush();
@@ -149,7 +163,7 @@ public class AtenderPeticion implements Runnable {
 								byte[] buff = new byte[1024 * 1024];
 								int leidos = ois.read(buff);
 								int escritos = 0;
-								while (escritos < Integer.parseInt(tam)) { // leidos != -1 &&
+								while (leidos != -1 && escritos < Integer.parseInt(tam)) { //
 									escritos = escritos + leidos;
 									fos.write(buff, 0, leidos);
 									leidos = ois.read(buff);
@@ -195,10 +209,10 @@ public class AtenderPeticion implements Runnable {
 						if (existe) {
 							// lo manda
 							oos.writeObject(archivoAmandar);
-							oos.write("Archivo mandado con éxito\r\n".getBytes());
+							oos.write("Archivo mandado con éxito.\r\n".getBytes());
 							oos.flush();
 						} else {
-							oos.write("Error archivo no encontrado\r\n".getBytes());
+							oos.write("Error archivo no encontrado.\r\n".getBytes());
 							oos.flush();
 						}
 						break;
@@ -230,6 +244,23 @@ public class AtenderPeticion implements Runnable {
 					e.printStackTrace();
 				}
 		}
+	}
+
+	public boolean existeElElemento(String nombreElemento, String elemento, String archivoxml)
+			throws SAXException, IOException, ParserConfigurationException {
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		DocumentBuilder db = dbf.newDocumentBuilder();
+		File xml = new File(archivoxml);
+		Document docu = db.parse(xml);
+		Element r = docu.getDocumentElement();
+		NodeList nodelits = r.getElementsByTagName(elemento);
+		for (int i = 0; i < nodelits.getLength(); i++) {
+			Element e = (Element) nodelits.item(i);
+			NodeList no = e.getElementsByTagName("nombre");
+			if (nombreElemento.equals(no.item(0).getTextContent()))
+				return true;
+		}
+		return false;
 	}
 
 }

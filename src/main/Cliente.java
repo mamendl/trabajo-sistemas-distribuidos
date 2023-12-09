@@ -56,32 +56,30 @@ public class Cliente {
 			if (option == 3)
 				System.exit(0);
 
-			System.out.print("Usuario: ");
-			String nom = sc.nextLine();
-			System.out.print("Contraseña: ");
-			String contrasena = sc.nextLine();
-			oos.write((nom + "\r\n").getBytes());
-			oos.write((contrasena + "\r\n").getBytes());
-			oos.flush();
+			boolean correcto = false;
 
-			boolean correcto;
+			String mensaje = "";
 
-			String mensaje = ois.readLine();
-			System.out.println(mensaje);
+			while (!correcto) {
+				System.out.print("Usuario: ");
+				String nom = sc.nextLine();
+				System.out.print("Contraseña: ");
+				String contrasena = sc.nextLine();
+				oos.write((nom + "\r\n").getBytes());
+				oos.write((contrasena + "\r\n").getBytes());
+				oos.flush();
 
-			correcto = ois.readBoolean();
+				mensaje = ois.readLine();
+				System.out.println(mensaje);
 
-			/*
-			 * while(!correcto&&!linea.equalsIgnoreCase("Desconectar")) { linea =
-			 * sc.nextLine(); System.out.print("Usuario: "); String nom = sc.nextLine();
-			 * System.out.print("Contraseña: "); String contrasena = sc.nextLine();
-			 * oos.write((nom+"\r\n").getBytes());
-			 * oos.write((contrasena+"\r\n").getBytes()); oos.flush(); }
-			 */
+				correcto = ois.readBoolean();
+			}
+
+			boolean borrado = false;
 
 			if (correcto) {
 				System.out.print("Bienvenido a Drive Safe. ");
-				while (option != 6 && option != 5) {
+				while (option != 6 && !borrado) {
 					option = 0;
 					System.out.print("Seleccione una opción:\n");
 					System.out.println("1. Consultar archivos");
@@ -112,6 +110,7 @@ public class Cliente {
 						if (nodes.getLength() == 0) {
 							System.out.println("Parece que aún no has subido nada.");
 						} else {
+							System.out.println("Estos son tus archivos:");
 							for (int i = 0; i < nodes.getLength(); i++) {
 								Element a = (Element) nodes.item(i);
 								System.out.print(a.getElementsByTagName("nombre").item(0).getTextContent() + " ");
@@ -124,17 +123,17 @@ public class Cliente {
 						System.out.println("Introducir la ruta del archivo que desea subir:");
 						String ar = sc.nextLine();
 						File arch = new File(ar);
-						
+
 						if (arch.exists() && !arch.isDirectory()) {
-							
+
 							oos.write((arch.getName() + "\r\n").getBytes());
 							oos.write((arch.length() + "\r\n").getBytes());
 							oos.flush();
-							
+
 							boolean enviar = ois.readBoolean();
 
-							if(enviar) {
-								System.out.println("enviando ...");
+							if (enviar) {
+
 								byte[] buff = new byte[1024 * 1024];
 
 								try (FileInputStream fos = new FileInputStream(arch)) {
@@ -176,6 +175,7 @@ public class Cliente {
 									|| decision.equalsIgnoreCase("si")) {
 								x = true;
 								// borreision
+								borrado = true;
 							} else if (decision.equalsIgnoreCase("n") || decision.equalsIgnoreCase("no")) {
 								x = true;
 							}
