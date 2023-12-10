@@ -50,19 +50,19 @@ public class AtenderPeticion implements Runnable {
 				switch (op) {
 				case 1:
 					while (!corresto) {
-						
+
 						NodeList nodes = root.getElementsByTagName("usuario");
 						int i = 0;
 						do {
 							Element e = (Element) nodes.item(i);
-							Element nom = (Element) e.getElementsByTagName("nombre").item(i);
+							Element nom = (Element) e.getElementsByTagName("nombre").item(0);
 							if (usuario.equals(nom.getTextContent())) {
 								encontrado = true;
-								System.out.println(usuario + " " + nom.getTextContent());
-								Element c = (Element) e.getElementsByTagName("clave").item(i);
+								//System.out.println(usuario + " " + nom.getTextContent());
+								Element c = (Element) e.getElementsByTagName("clave").item(0);
 								if (clave.equals(c.getTextContent())) {
 									corresto = true;
-									System.out.println(clave.equals(c.getTextContent()));
+									//System.out.println(clave.equals(c.getTextContent()));
 								} else {
 									oos.write("Contraseña incorrecta\r\n".getBytes());
 								}
@@ -77,19 +77,22 @@ public class AtenderPeticion implements Runnable {
 						if (!encontrado) {
 							oos.write("Error: usuario no encontrado\r\n".getBytes());
 						}
-						
+
 						oos.writeBoolean(corresto);
 						oos.flush();
-						
-						if(!corresto) {
+
+						if (!corresto) {
 							usuario = ois.readLine();
 							clave = ois.readLine();
 						}
+						
 					}
 					break;
 				case 2:
-					while(!corresto) {
+					while (!corresto) {
+						
 						if (!existeElElemento(usuario, "usuario", "src/datos/usuarios.xml")) {
+							
 							Element nuevoUsuario = d.createElement("usuario");
 							Element nom = d.createElement("nombre");
 							nom.setTextContent(usuario);
@@ -98,13 +101,13 @@ public class AtenderPeticion implements Runnable {
 							nuevoUsuario.appendChild(nom);
 							nuevoUsuario.appendChild(c);
 							root.appendChild(nuevoUsuario);
-	
+
 							TransformerFactory tf = TransformerFactory.newInstance();
 							Transformer t = tf.newTransformer();
 							DOMSource source = new DOMSource(root);
 							StreamResult result = new StreamResult(new File("src/datos/usuarios.xml"));
 							t.transform(source, result);
-							
+
 							File carpeta = new File("src/datos/" + usuario);
 							carpeta.mkdir();
 							try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
@@ -113,31 +116,32 @@ public class AtenderPeticion implements Runnable {
 										+ "<!DOCTYPE archivos SYSTEM \"../archivos.dtd\" >\r\n" + "<archivos>\r\n"
 										+ "</archivos>");
 							}
-	
+
 							this.usuario = usuario;
-							
+
 							oos.write("Te has registrado correctamente\r\n".getBytes());
-							
+
 							corresto = true;
+							
 						} else {
-	
+
 							oos.write("El nombre que has introducido ya existe\r\n".getBytes());
-	
+
 							corresto = false;
 						}
 						oos.writeBoolean(corresto);
 						oos.flush();
-						if(!corresto) {
+						if (!corresto) {
 							usuario = ois.readLine();
 							clave = ois.readLine();
 						}
-						
+
 					}
 					break;
 				}
 				oos.flush();
-				//oos.writeBoolean(corresto);
-				//oos.flush();
+				// oos.writeBoolean(corresto);
+				// oos.flush();
 				op = ois.readInt();
 				String suXml = "src/datos/" + this.usuario + "/" + this.usuario + ".xml";
 				while (op != 6 && op != 5) {
@@ -160,13 +164,6 @@ public class AtenderPeticion implements Runnable {
 						Element r = docu.getDocumentElement();
 
 						boolean subido = existeElElemento(nombre, "archivo", suXml);
-
-						/*
-						 * NodeList nodelits = r.getElementsByTagName("archivo"); for(int i = 0; i <
-						 * nodelits.getLength(); i++) { Element e = (Element) nodelits.item(i); NodeList
-						 * no = e.getElementsByTagName("nombre");
-						 * if(nombre.equals(no.item(0).getTextContent())) subido = true; }
-						 */
 
 						if (!subido) {
 							oos.writeBoolean(true);
@@ -212,33 +209,55 @@ public class AtenderPeticion implements Runnable {
 
 						break;
 					case 3:
-						// recibir el nombre, buscarlo, enviar un mensaje si existe o no y enviar el
-						// archivo
-						String nombreArchivo = ois.readLine();
-						boolean existe = false;
-						File archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
-						existe = archivoAmandar.exists();
-						oos.writeBoolean(existe);
-						if (existe) {
-							// lo manda
-							oos.writeObject(archivoAmandar);
-							oos.write("Archivo mandado con éxito.\r\n".getBytes());
+						File archivosXml = new File(suXml);
+						Document docum = db.parse(archivosXml);
+						Element archivos = docum.getDocumentElement();
+						oos.writeObject(archivos);
+						if(archivos.getElementsByTagName("archivo").getLength()!=0) {
+							String nombreArchivo = ois.readLine();
+							File archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+							boolean existe = archivoAmandar.exists();
+							oos.writeBoolean(existe);
 							oos.flush();
-						} else {
-							oos.write("Error archivo no encontrado.\r\n".getBytes());
+							while (!existe) {
+								nombreArchivo = ois.readLine();
+								archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+								existe = archivoAmandar.exists();
+								oos.writeBoolean(existe);
+								oos.flush();
+							}
+							
+							// lo manda
+							byte[] buff = new byte[1024 * 1024];
+							try (FileInputStream fos = new FileInputStream(archivoAmandar)) {
+								oos.write((archivoAmandar.length()+"\r\n").getBytes());
+								int leidos = fos.read(buff);
+								int enviados = 0;
+								while (enviados < archivoAmandar.length()) {
+									oos.write(buff, 0, leidos);
+									enviados = enviados + leidos;
+									leidos = fos.read(buff);
+									oos.flush();
+								}
+								System.out.println("apañao");
+								oos.write("\u001a".getBytes());
+								oos.flush();
+							}
+
+							oos.write("Archivo mandado con éxito.\r\n".getBytes());
 							oos.flush();
 						}
 						break;
 					case 4:
 						// borrar archivo
 						// recibe el nombre
-						String nombreArchivoABorrar = ois.readLine();
+						/*String nombreArchivoABorrar = ois.readLine();
 						File archivoABorrar = new File("src/datos/" + usuario + "/" + nombreArchivoABorrar);
 						if (archivoABorrar.delete()) {
 							oos.write("Archivo eliminado con éxito".getBytes());
 							// AQUÍ FALTARÍA ELIMINAR EL ARCHIVO DEL XML
 						} else
-							oos.write("Error: no se ha podido eliminar el archivo".getBytes());
+							oos.write("Error: no se ha podido eliminar el archivo".getBytes());*/
 						break;
 					case 5:
 						//

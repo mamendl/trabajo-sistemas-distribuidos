@@ -20,20 +20,7 @@ public class Cliente {
 		try (Socket s = new Socket("localhost", 55555);
 				ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(s.getInputStream());) {
-			// Ventana t = (Ventana) ois.readObject();
-			/*
-			 * System.out.println("¿Interfaz o consola?");
-			 * System.out.println("1. Interfaz"); System.out.println("2. Consola");
-			 * System.out.println("3. No quiero seguir me da amsiedad tomar decisiones :(");
-			 * 
-			 * 
-			 * while(option==0||option>3||option<0) { try{ linea = sc.nextLine(); option =
-			 * Integer.parseInt(linea); } catch(NumberFormatException nfe){
-			 * System.out.println("Introduce un número válido"); } }
-			 * 
-			 * oos.writeInt(option); oos.flush(); if(option==3) System.exit(0);
-			 */
-
+			
 			Scanner sc = new Scanner(System.in);
 			String linea = "";
 			int option = 0;
@@ -41,6 +28,7 @@ public class Cliente {
 			System.out.println("1. Loggearse");
 			System.out.println("2. Darse de alta");
 			System.out.println("3. Desconectar");
+			System.out.print("Introduce una opción: ");
 			option = 0;
 			while (option == 0 || option > 3 || option < 0) {
 				try {
@@ -78,28 +66,29 @@ public class Cliente {
 			boolean borrado = false;
 
 			if (correcto) {
-				System.out.print("Bienvenido a Drive Safe. ");
+				System.out.println("Bienvenido a Drive Safe.");
 				while (option != 6 && !borrado) {
 					option = 0;
-					System.out.print("Seleccione una opción:\n");
 					System.out.println("1. Consultar archivos");
 					System.out.println("2. Subir archivo");
 					System.out.println("3. Descargar archivo");
 					System.out.println("4. Borrar un archivo");
 					System.out.println("5. Borrar mi usuario");
 					System.out.println("6. Desconectar");
-
+					System.out.print("Introduzca una opción: ");
 					while (option == 0 || option > 6 || option < 0) {
 						try {
 							linea = sc.nextLine();
 							option = Integer.parseInt(linea);
 						} catch (NumberFormatException nfe) {
-							System.out.println("Introduce un número válido");
+							System.out.print("Introduce un número válido: ");
 						}
 					}
 
 					oos.writeInt(option);
 					oos.flush();
+					
+					boolean existe = false;
 
 					switch (option) {
 					case 1:
@@ -143,8 +132,6 @@ public class Cliente {
 										leidos = fos.read(buff);
 										oos.flush();
 									}
-									oos.write("\u001a".getBytes());
-									System.out.println("sacabó");
 									oos.flush();
 									mensaje = ois.readLine();
 									System.out.println(mensaje);
@@ -159,9 +146,60 @@ public class Cliente {
 						}
 						break;
 					case 3:
-						System.out.println("Introduce el nombre del archivo que quieres descargar:");
+						Element archivos = (Element) ois.readObject();
+						if(archivos.getElementsByTagName("archivo").getLength()==0) {
+							System.out.println("No tienes archivos subidos todavía fiera.");
+						} else {
+							System.out.print("Introduce el nombre del archivo que quieres descargar: ");
+							linea = sc.nextLine();
+							oos.write((linea + "\r\n").getBytes());
+							oos.flush();
+							existe = ois.readBoolean();
+							while (!existe) {
+								System.out.print("Error, ese archivo no existe. ¿Estás seguro de que lo has escrito bien? Introdúcelo de nuevo: ");
+								linea = sc.nextLine();
+								oos.write((linea + "\r\n").getBytes());
+								oos.flush();
+								existe = ois.readBoolean();
+							}
+							String archivoAdescargar = linea;
+							System.out.print("Introduce el nombre del directorio donde quieras guardarlo: ");
+							String direc = sc.nextLine();
+							File dir = new File(direc);
+							while (!dir.isDirectory()) {
+								System.out.print("Introduce un directorio válido: ");
+								direc = sc.nextLine();
+								dir = new File(direc);
+							}
+							int size = Integer.parseInt(ois.readLine());
+							byte[] buff = new byte[1024 * 1024];
+							try (FileOutputStream fos = new FileOutputStream(direc + "/" + archivoAdescargar)) {
+								int leidos = ois.read(buff);
+								int enviados = 0;
+								while (leidos != -1 && enviados<size) {
+									fos.write(buff, 0, leidos);
+									enviados = enviados + leidos;
+									leidos = ois.read(buff);
+								}
+							}
+							mensaje = ois.readLine();
+							System.out.println(mensaje);
+						}
+						break;
+					case 4:		//BORRAR UN ARCHIVO:
+						System.out.print("Introduce el nombre del archivo que quieres descargar: ");
 						linea = sc.nextLine();
 						oos.write((linea + "\r\n").getBytes());
+						oos.flush();
+						existe = ois.readBoolean();
+						while (!existe) {
+							System.out.print("Error, ese archivo no existe. ¿Estás seguro de que lo has escrito bien? Introdúcelo de nuevo: ");
+							linea = sc.nextLine();
+							oos.write((linea + "\r\n").getBytes());
+							oos.flush();
+							existe = ois.readBoolean();
+						}
+						System.out.println("ese archivo si existe mi pana");
 						break;
 					case 5:
 						System.out.println(
@@ -174,8 +212,10 @@ public class Cliente {
 							if (decision.equalsIgnoreCase("s") || decision.equalsIgnoreCase("sí")
 									|| decision.equalsIgnoreCase("si")) {
 								x = true;
-								// borreision
 								borrado = true;
+								oos.writeBoolean(borrado);
+								mensaje = ois.readLine();
+								System.out.println(mensaje);
 							} else if (decision.equalsIgnoreCase("n") || decision.equalsIgnoreCase("no")) {
 								x = true;
 							}
@@ -183,8 +223,6 @@ public class Cliente {
 						break;
 					}
 				}
-				oos.writeInt(6);
-				oos.flush();
 			}
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
