@@ -73,7 +73,7 @@ public class AtenderPeticion implements Runnable {
 
 						if (corresto) {
 							this.usuario = usuario;
-							oos.write("Te has loggeado correctamente\r\n".getBytes());
+							oos.write("Has iniciado sesion correctamente\r\n".getBytes());
 							oos.flush();
 						}
 
@@ -143,21 +143,23 @@ public class AtenderPeticion implements Runnable {
 				oos.flush();
 				// oos.writeBoolean(corresto);
 				// oos.flush();
-
-				String suXml = "src/datos/" + this.usuario + "/" + this.usuario + ".xml";
+				
 				boolean borrado = false;
-				File xml = new File(suXml);
-				Document docu = db.parse(xml);
-				Element raiz = docu.getDocumentElement();
-
+				
 				while (op != 6 && !borrado) {
+
+					String suXml = "src/datos/" + this.usuario + "/" + this.usuario + ".xml";
+					
+					File xml = new File(suXml);
+					Document docu = db.parse(xml);
+					Element raiz = docu.getDocumentElement();
 
 					op = ois.readInt();
 
 					switch (op) {
 					case 1:
 						// enviar su xml
-						oos.reset();
+						//oos.reset();
 						oos.writeObject(docu);
 						oos.flush();
 						break;

@@ -25,7 +25,7 @@ public class Cliente {
 			String linea = "";
 			int option = 0;
 
-			System.out.println("1. Loggearse");
+			System.out.println("1. Iniciar sesión");
 			System.out.println("2. Darse de alta");
 			System.out.println("3. Desconectar");
 			System.out.print("Introduce una opción: ");
