@@ -169,58 +169,54 @@ public class Cliente {
 						Element archivos = (Element) ois.readObject();
 						if (archivos.getElementsByTagName("archivo").getLength() == 0) {
 							System.out.println("No tienes archivos subidos todavía fiera.");
-							break;
-						}
-						
-						System.out.print("Introduce el nombre del archivo que quieres descargar: ");
-						linea = sc.nextLine();
-						oos.write((linea + "\r\n").getBytes());
-						oos.flush();
-						existe = ois.readBoolean();
-						while (!existe && !cancelar) {
-							System.out.print(
-									"Error, ese archivo no existe. ¿Estás seguro de que lo has escrito bien? Introdúcelo de nuevo (escribe cancelar para volver al menú): ");
+						} else {
+							System.out.print("Introduce el nombre del archivo que quieres descargar: ");
 							linea = sc.nextLine();
-							if (linea.equalsIgnoreCase("cancelar")) {
-								cancelar = true;
-								oos.writeBoolean(cancelar);
-								oos.flush();
-							} else {
-								oos.writeBoolean(cancelar);
-								oos.flush();
-								oos.write((linea + "\r\n").getBytes());
-								oos.flush();
-								existe = ois.readBoolean();
+							oos.write((linea + "\r\n").getBytes());
+							oos.flush();
+							existe = ois.readBoolean();
+							while (!existe && !cancelar) {
+								System.out.print(
+										"Error, ese archivo no existe. ¿Estás seguro de que lo has escrito bien? Introdúcelo de nuevo (escribe cancelar para volver al menú): ");
+								linea = sc.nextLine();
+								if (linea.equalsIgnoreCase("cancelar")) {
+									cancelar = true;
+									oos.writeBoolean(cancelar);
+									oos.flush();
+								} else {
+									oos.writeBoolean(cancelar);
+									oos.flush();
+									oos.write((linea + "\r\n").getBytes());
+									oos.flush();
+									existe = ois.readBoolean();
+								}
 							}
+
+							if (!cancelar){
+								String archivoAdescargar = linea;
+								System.out.print("Introduce el nombre del directorio donde quieras guardarlo: ");
+								String direc = sc.nextLine();
+								File dir = new File(direc);
+								while (!dir.isDirectory()) {
+									System.out.print("Introduce un directorio válido: ");
+									direc = sc.nextLine();
+									dir = new File(direc);
+								}
+								int size = Integer.parseInt(ois.readLine());
+								byte[] buff = new byte[1024 * 1024];
+								try (FileOutputStream fos = new FileOutputStream(direc + "/" + archivoAdescargar)) {
+									int leidos = ois.read(buff);
+									int enviados = 0;
+									while (leidos != -1 && enviados < size) {
+										fos.write(buff, 0, leidos);
+										enviados = enviados + leidos;
+										leidos = ois.read(buff);
+									}
+								}
+								mensaje = ois.readLine();
+								System.out.println(mensaje);
+							}	
 						}
-						
-						oos.writeBoolean(cancelar);
-						oos.flush();
-						
-						if(cancelar) break;
-						
-						String archivoAdescargar = linea;
-						System.out.print("Introduce el nombre del directorio donde quieras guardarlo: ");
-						String direc = sc.nextLine();
-						File dir = new File(direc);
-						while (!dir.isDirectory()) {
-							System.out.print("Introduce un directorio válido: ");
-							direc = sc.nextLine();
-							dir = new File(direc);
-						}
-						int size = Integer.parseInt(ois.readLine());
-						byte[] buff = new byte[1024 * 1024];
-						try (FileOutputStream fos = new FileOutputStream(direc + "/" + archivoAdescargar)) {
-							int leidos = ois.read(buff);
-							int enviados = 0;
-							while (leidos != -1 && enviados < size) {
-								fos.write(buff, 0, leidos);
-								enviados = enviados + leidos;
-								leidos = ois.read(buff);
-							}
-						}
-						mensaje = ois.readLine();
-						System.out.println(mensaje);
 						break;
 					case 4: // BORRAR UN ARCHIVO:
 						cancelar = false;
@@ -251,13 +247,14 @@ public class Cliente {
 							}
 							if (!cancelar && ois.readBoolean()) {
 								System.out.println("Archivo borrado correctamente.");
-							} else if (!cancelar) {
+							} else if(!cancelar) {
 								System.out.println("Parece que no se ha podido borrar el archivo.");
 							}
 						}
 						break;
 					case 5:
-						System.out.print("Vas a borrar tu usuario y todos sus datos para siempre (eso es mucho tiempo). ");
+						System.out.print(
+								"Vas a borrar tu usuario y todos sus datos para siempre (eso es mucho tiempo). ");
 						String decision;
 						boolean x = false;
 						while (!x) {
@@ -284,6 +281,12 @@ public class Cliente {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
+			OptionalDataException o = (OptionalDataException) e;
+			if (o != null) {
+				System.out.println("lamadrequemepariodiosmio");
+				System.out.println(o.eof);
+				System.out.println(o.length);
+			}
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();

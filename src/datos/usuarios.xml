@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><usuarios>
-        
-    <usuario>
-                
-        <nombre>admin</nombre>
-                
-        <clave>admin</clave>
             
+
+    <usuario>
+        <nombre>admin</nombre>
+        <clave>admin</clave>
     </usuario>
-    
 </usuarios>

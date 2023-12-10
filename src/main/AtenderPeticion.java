@@ -162,6 +162,7 @@ public class AtenderPeticion implements Runnable {
 						//oos.reset();
 						oos.writeObject(docu);
 						oos.flush();
+						//oos.reset();
 						break;
 					case 2:
 						// recibir y añadir a su xml
@@ -223,45 +224,42 @@ public class AtenderPeticion implements Runnable {
 						cancelar = false;
 						oos.writeObject(raiz);
 						oos.flush();
-						if (raiz.getElementsByTagName("archivo").getLength() == 0)
-							break;
-
-						String nombreArchivo = ois.readLine();
-						File archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
-						boolean existe = archivoAmandar.exists();
-						oos.writeBoolean(existe);
-						oos.flush();
-						cancelar = ois.readBoolean();
-						while (!existe && !cancelar) {
-							nombreArchivo = ois.readLine();
-							archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
-							existe = archivoAmandar.exists();
+						if (raiz.getElementsByTagName("archivo").getLength() != 0) {
+							String nombreArchivo = ois.readLine();
+							File archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+							boolean existe = archivoAmandar.exists();
 							oos.writeBoolean(existe);
 							oos.flush();
 							cancelar = ois.readBoolean();
-						}
-						
-						if (cancelar)
-							break;
-						
-						// lo manda
-						byte[] buff = new byte[1024 * 1024];
-						try (FileInputStream fos = new FileInputStream(archivoAmandar)) {
-							oos.write((archivoAmandar.length() + "\r\n").getBytes());
-							int leidos = fos.read(buff);
-							int enviados = 0;
-							while (enviados < archivoAmandar.length()) {
-								oos.write(buff, 0, leidos);
-								enviados = enviados + leidos;
-								leidos = fos.read(buff);
+							while (!existe && !cancelar) {
+								nombreArchivo = ois.readLine();
+								archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+								existe = archivoAmandar.exists();
+								oos.writeBoolean(existe);
+								oos.flush();
+								cancelar = ois.readBoolean();
+							}
+							if(!cancelar) {
+								// lo manda
+								byte[] buff = new byte[1024 * 1024];
+								try (FileInputStream fos = new FileInputStream(archivoAmandar)) {
+									oos.write((archivoAmandar.length() + "\r\n").getBytes());
+									int leidos = fos.read(buff);
+									int enviados = 0;
+									while (enviados < archivoAmandar.length()) {
+										oos.write(buff, 0, leidos);
+										enviados = enviados + leidos;
+										leidos = fos.read(buff);
+										oos.flush();
+									}
+									oos.write("\u001a".getBytes());
+									oos.flush();
+								}
+
+								oos.write("Archivo mandado correctamente.\r\n".getBytes());
 								oos.flush();
 							}
-							oos.write("\u001a".getBytes());
-							oos.flush();
 						}
-
-						oos.write("Archivo mandado correctamente.\r\n".getBytes());
-						oos.flush();
 
 						break;
 					case 4:
@@ -269,73 +267,75 @@ public class AtenderPeticion implements Runnable {
 						cancelar = false;
 						raiz = docu.getDocumentElement();
 						oos.writeObject(raiz);
-						if (raiz.getElementsByTagName("archivo").getLength() == 0)
-							break;
-
-						nombreArchivo = ois.readLine();
-						File archivoAborrar = new File("src/datos/" + usuario + "/" + nombreArchivo);
-						existe = archivoAborrar.exists();
-						oos.writeBoolean(existe);
-						oos.flush(); // lee una linea escribe el booleano
-						while (!existe && !cancelar) {
-							cancelar = ois.readBoolean();
-							if (cancelar)
-								break;
-							nombreArchivo = ois.readLine();
-							archivoAborrar = new File("src/datos/" + usuario + "/" + nombreArchivo);
-							existe = archivoAborrar.exists();
-							oos.writeBoolean(existe);
-							oos.flush();
-
-						}
-
-						oos.writeBoolean(archivoAborrar.delete());
 						oos.flush();
-						// eliminarlo del xml
-						NodeList ar = raiz.getElementsByTagName("archivo");
-						int i = 0;
-						encontrado = false;
-						do {
-							Element arc = (Element) ar.item(i);
-							if (arc.getElementsByTagName("nombre").item(0).getTextContent().equals(nombreArchivo)) {
-								arc.getParentNode().removeChild(arc);
-								encontrado = true;
+						
+						if (raiz.getElementsByTagName("archivo").getLength() != 0) {
+							String nombreArchivo = ois.readLine();
+							File archivoAborrar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+							boolean existe = archivoAborrar.exists();
+							oos.writeBoolean(existe);
+							oos.flush(); 
+							while (!existe && !cancelar) {
+								cancelar = ois.readBoolean();
+								if(!cancelar) {
+									nombreArchivo = ois.readLine();
+									archivoAborrar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+									existe = archivoAborrar.exists();
+									oos.writeBoolean(existe);
+									oos.flush();
+								}
 							}
-							i++;
-						} while (i < ar.getLength() && !encontrado);
-						guardarElXml(raiz, suXml);
-
+							
+							if(!cancelar) {
+								oos.writeBoolean(archivoAborrar.delete());
+								oos.flush();
+								// eliminarlo del xml
+								NodeList ar = raiz.getElementsByTagName("archivo");
+								int i = 0;
+								encontrado = false;
+								do {
+									Element arc = (Element) ar.item(i);
+									if (arc.getElementsByTagName("nombre").item(0).getTextContent().equals(nombreArchivo)) {
+										arc.getParentNode().removeChild(arc);
+										encontrado = true;
+									}
+									i++;
+								} while (i < ar.getLength() && !encontrado);
+								guardarElXml(raiz, suXml);
+								oos.flush();
+							}
+						}
+						
 						break;
 					case 5:
 						borrado = ois.readBoolean();
 
-						if (!borrado)
-							break;
+						if (borrado){
+							int i = 0;
 
-						i = 0;
+							File carpeta = new File("src/datos/" + this.usuario);
 
-						File carpeta = new File("src/datos/" + this.usuario);
+							for (File file : carpeta.listFiles()) {
+								file.delete();
+							}
 
-						for (File file : carpeta.listFiles()) {
-							file.delete();
+							if (carpeta.delete()) {
+								NodeList ar = root.getElementsByTagName("usuario");
+								do {
+									Element arc = (Element) ar.item(i);
+									if (arc.getElementsByTagName("nombre").item(0).getTextContent().equals(this.usuario)) {
+										arc.getParentNode().removeChild(arc);
+										encontrado = true;
+									}
+									i++;
+								} while (i < ar.getLength() && !encontrado);
+								guardarElXml(root, "src/datos/usuarios.xml");
+								oos.write("Usuario eliminado correctamente.\r\n".getBytes());
+							} else {
+								oos.write("Ha habido un problema borrando tu carpetita.\r\n".getBytes());
+							}
+							oos.flush();
 						}
-
-						if (carpeta.delete()) {
-							ar = root.getElementsByTagName("usuario");
-							do {
-								Element arc = (Element) ar.item(i);
-								if (arc.getElementsByTagName("nombre").item(0).getTextContent().equals(this.usuario)) {
-									arc.getParentNode().removeChild(arc);
-									encontrado = true;
-								}
-								i++;
-							} while (i < ar.getLength() && !encontrado);
-							guardarElXml(root, "src/datos/usuarios.xml");
-							oos.write("Usuario eliminado correctamente.\r\n".getBytes());
-						} else {
-							oos.write("Ha habido un problema borrando tu carpetita.\r\n".getBytes());
-						}
-						oos.flush();
 
 						break;
 					}
