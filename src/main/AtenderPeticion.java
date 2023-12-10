@@ -60,11 +60,9 @@ public class AtenderPeticion implements Runnable {
 							Element nom = (Element) e.getElementsByTagName("nombre").item(0);
 							if (usuario.equals(nom.getTextContent())) {
 								encontrado = true;
-								// System.out.println(usuario + " " + nom.getTextContent());
 								Element c = (Element) e.getElementsByTagName("clave").item(0);
 								if (clave.equals(c.getTextContent())) {
 									corresto = true;
-									// System.out.println(clave.equals(c.getTextContent()));
 								} else {
 									oos.write("Contraseña incorrecta\r\n".getBytes());
 									oos.flush();
@@ -159,6 +157,7 @@ public class AtenderPeticion implements Runnable {
 					switch (op) {
 					case 1:
 						// enviar su xml
+						oos.reset();
 						oos.writeObject(docu);
 						oos.flush();
 						break;
@@ -239,8 +238,10 @@ public class AtenderPeticion implements Runnable {
 							oos.flush();
 							cancelar = ois.readBoolean();
 						}
+						
 						if (cancelar)
 							break;
+						
 						// lo manda
 						byte[] buff = new byte[1024 * 1024];
 						try (FileInputStream fos = new FileInputStream(archivoAmandar)) {
@@ -295,7 +296,6 @@ public class AtenderPeticion implements Runnable {
 						do {
 							Element arc = (Element) ar.item(i);
 							if (arc.getElementsByTagName("nombre").item(0).getTextContent().equals(nombreArchivo)) {
-								System.out.println(arc.getElementsByTagName("nombre").item(0).getTextContent());
 								arc.getParentNode().removeChild(arc);
 								encontrado = true;
 							}

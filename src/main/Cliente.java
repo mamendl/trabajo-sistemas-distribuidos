@@ -102,7 +102,7 @@ public class Cliente {
 						Element raiz = d.getDocumentElement();
 						NodeList nodes = raiz.getElementsByTagName("archivo");
 						if (nodes.getLength() == 0) {
-							System.out.println("Parece que aún no has subido nada.");
+							System.out.println("Parece que no tienes ningún archivo subido.");
 						} else {
 							System.out.println("Estos son tus archivos:");
 							for (int i = 0; i < nodes.getLength(); i++) {
@@ -194,6 +194,8 @@ public class Cliente {
 							}
 						}
 						
+						oos.writeBoolean(cancelar);
+						oos.flush();
 						
 						if(cancelar) break;
 						
@@ -219,7 +221,6 @@ public class Cliente {
 						}
 						mensaje = ois.readLine();
 						System.out.println(mensaje);
-
 						break;
 					case 4: // BORRAR UN ARCHIVO:
 						cancelar = false;
@@ -238,28 +239,29 @@ public class Cliente {
 								linea = sc.nextLine();
 								if (linea.equalsIgnoreCase("cancelar")) {
 									cancelar = true;
+									oos.writeBoolean(cancelar);
+									oos.flush();
 								} else {
+									oos.writeBoolean(cancelar);
+									oos.flush();
 									oos.write((linea + "\r\n").getBytes());
 									oos.flush();
 									existe = ois.readBoolean();
 								}
-								oos.writeBoolean(cancelar);
-								oos.flush();
 							}
 							if (!cancelar && ois.readBoolean()) {
 								System.out.println("Archivo borrado correctamente.");
 							} else if (!cancelar) {
 								System.out.println("Parece que no se ha podido borrar el archivo.");
 							}
-
 						}
 						break;
 					case 5:
-						System.out.print("Vas a borrar tu usuario y todos sus datos para siempre (eso es mucho tiempo).");
+						System.out.print("Vas a borrar tu usuario y todos sus datos para siempre (eso es mucho tiempo). ");
 						String decision;
 						boolean x = false;
 						while (!x) {
-							System.out.print(" ¿Seguro que quieres continuar? (S/n): ");
+							System.out.print("¿Seguro que quieres continuar? (S/n): ");
 							decision = sc.nextLine();
 							if (decision.equalsIgnoreCase("s") || decision.equalsIgnoreCase("sí")
 									|| decision.equalsIgnoreCase("si")) {
