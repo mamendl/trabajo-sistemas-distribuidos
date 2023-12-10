@@ -281,12 +281,6 @@ public class Cliente {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			OptionalDataException o = (OptionalDataException) e;
-			if (o != null) {
-				System.out.println("lamadrequemepariodiosmio");
-				System.out.println(o.eof);
-				System.out.println(o.length);
-			}
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
