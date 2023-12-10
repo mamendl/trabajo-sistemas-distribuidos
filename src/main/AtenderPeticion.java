@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -58,11 +59,11 @@ public class AtenderPeticion implements Runnable {
 							Element nom = (Element) e.getElementsByTagName("nombre").item(0);
 							if (usuario.equals(nom.getTextContent())) {
 								encontrado = true;
-								//System.out.println(usuario + " " + nom.getTextContent());
+								// System.out.println(usuario + " " + nom.getTextContent());
 								Element c = (Element) e.getElementsByTagName("clave").item(0);
 								if (clave.equals(c.getTextContent())) {
 									corresto = true;
-									//System.out.println(clave.equals(c.getTextContent()));
+									// System.out.println(clave.equals(c.getTextContent()));
 								} else {
 									oos.write("Contraseña incorrecta\r\n".getBytes());
 									oos.flush();
@@ -76,7 +77,7 @@ public class AtenderPeticion implements Runnable {
 							oos.write("Te has loggeado correctamente\r\n".getBytes());
 							oos.flush();
 						}
-						
+
 						if (!encontrado) {
 							oos.write("Error: usuario no encontrado\r\n".getBytes());
 							oos.flush();
@@ -90,14 +91,14 @@ public class AtenderPeticion implements Runnable {
 							clave = ois.readLine();
 							encontrado = false;
 						}
-						
+
 					}
 					break;
 				case 2:
 					while (!corresto) {
-						
+
 						if (!existeElElemento(usuario, "usuario", "src/datos/usuarios.xml")) {
-							
+
 							Element nuevoUsuario = d.createElement("usuario");
 							Element nom = d.createElement("nombre");
 							nom.setTextContent(usuario);
@@ -107,11 +108,13 @@ public class AtenderPeticion implements Runnable {
 							nuevoUsuario.appendChild(c);
 							root.appendChild(nuevoUsuario);
 
-							TransformerFactory tf = TransformerFactory.newInstance();
+							guardarElXml(root, "src/datos/usuarios.xml");
+							
+							/*TransformerFactory tf = TransformerFactory.newInstance();
 							Transformer t = tf.newTransformer();
 							DOMSource source = new DOMSource(root);
-							StreamResult result = new StreamResult(new File("src/datos/usuarios.xml"));
-							t.transform(source, result);
+							StreamResult result = new StreamResult(new File());
+							t.transform(source, result);*/
 
 							File carpeta = new File("src/datos/" + usuario);
 							carpeta.mkdir();
@@ -127,7 +130,7 @@ public class AtenderPeticion implements Runnable {
 							oos.write("Te has registrado correctamente\r\n".getBytes());
 
 							corresto = true;
-							
+
 						} else {
 
 							oos.write("El nombre que has introducido ya existe\r\n".getBytes());
@@ -182,9 +185,9 @@ public class AtenderPeticion implements Runnable {
 									escritos = escritos + leidos;
 									fos.write(buff, 0, leidos);
 									leidos = ois.read(buff);
-									System.out.println(leidos + " " + escritos);
+									//System.out.println(leidos + " " + escritos);
 								}
-								System.out.println("aleluia");
+								//System.out.println("aleluia");
 							}
 
 							// añadir al xml:
@@ -218,7 +221,7 @@ public class AtenderPeticion implements Runnable {
 						Document docum = db.parse(archivosXml);
 						Element archivos = docum.getDocumentElement();
 						oos.writeObject(archivos);
-						if(archivos.getElementsByTagName("archivo").getLength()!=0) {
+						if (archivos.getElementsByTagName("archivo").getLength() != 0) {
 							String nombreArchivo = ois.readLine();
 							File archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
 							boolean existe = archivoAmandar.exists();
@@ -231,11 +234,11 @@ public class AtenderPeticion implements Runnable {
 								oos.writeBoolean(existe);
 								oos.flush();
 							}
-							
+
 							// lo manda
 							byte[] buff = new byte[1024 * 1024];
 							try (FileInputStream fos = new FileInputStream(archivoAmandar)) {
-								oos.write((archivoAmandar.length()+"\r\n").getBytes());
+								oos.write((archivoAmandar.length() + "\r\n").getBytes());
 								int leidos = fos.read(buff);
 								int enviados = 0;
 								while (enviados < archivoAmandar.length()) {
@@ -254,14 +257,40 @@ public class AtenderPeticion implements Runnable {
 						break;
 					case 4:
 						// borrar archivo
-						// recibe el nombre
-						/*String nombreArchivoABorrar = ois.readLine();
-						File archivoABorrar = new File("src/datos/" + usuario + "/" + nombreArchivoABorrar);
-						if (archivoABorrar.delete()) {
-							oos.write("Archivo eliminado con éxito".getBytes());
-							// AQUÍ FALTARÍA ELIMINAR EL ARCHIVO DEL XML
-						} else
-							oos.write("Error: no se ha podido eliminar el archivo".getBytes());*/
+						archivosXml = new File(suXml);
+						docum = db.parse(archivosXml);
+						archivos = docum.getDocumentElement();
+						oos.writeObject(archivos);
+						if (archivos.getElementsByTagName("archivo").getLength() != 0) {
+							String nombreArchivo = ois.readLine();
+							File archivoAborrar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+							boolean existe = archivoAborrar.exists();
+							oos.writeBoolean(existe);
+							oos.flush();
+							while (!existe) {
+								nombreArchivo = ois.readLine();
+								archivoAborrar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+								existe = archivoAborrar.exists();
+								oos.writeBoolean(existe);
+								oos.flush();
+							}
+							oos.writeBoolean(archivoAborrar.delete());
+							oos.flush();
+							//eliminarlo del xml
+							NodeList ar = archivos.getElementsByTagName("archivo");
+							int i = 0;
+							encontrado = false;
+							do{
+								Element arc = (Element) ar.item(i);
+								if(arc.getElementsByTagName("nombre").item(0).getTextContent().equals(nombreArchivo)) {
+									System.out.println(arc.getElementsByTagName("nombre").item(0).getTextContent());
+									arc.getParentNode().removeChild(arc);
+									encontrado = true;
+								}
+								i++;
+							} while(i < ar.getLength() && !encontrado);
+							guardarElXml(archivos,suXml);
+						}
 						break;
 					case 5:
 						//
@@ -280,6 +309,16 @@ public class AtenderPeticion implements Runnable {
 					e.printStackTrace();
 				}
 		}
+	}
+
+	private void guardarElXml(Element root, String xml) throws TransformerException {
+		TransformerFactory tf = TransformerFactory.newInstance();
+		Transformer t = tf.newTransformer();
+		t.setOutputProperty(OutputKeys.INDENT, "yes");
+		DOMSource source = new DOMSource(root);
+		StreamResult result = new StreamResult(new File(xml));
+		t.transform(source, result);
+		//System.out.println(result.getWriter().toString());
 	}
 
 	public boolean existeElElemento(String nombreElemento, String elemento, String archivoxml)

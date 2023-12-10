@@ -20,7 +20,7 @@ public class Cliente {
 		try (Socket s = new Socket("localhost", 55555);
 				ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(s.getInputStream());) {
-			
+
 			Scanner sc = new Scanner(System.in);
 			String linea = "";
 			int option = 0;
@@ -87,7 +87,7 @@ public class Cliente {
 
 					oos.writeInt(option);
 					oos.flush();
-					
+
 					boolean existe = false;
 
 					switch (option) {
@@ -132,6 +132,7 @@ public class Cliente {
 										leidos = fos.read(buff);
 										oos.flush();
 									}
+									oos.write("\u001a".getBytes());
 									oos.flush();
 									mensaje = ois.readLine();
 									System.out.println(mensaje);
@@ -147,7 +148,7 @@ public class Cliente {
 						break;
 					case 3:
 						Element archivos = (Element) ois.readObject();
-						if(archivos.getElementsByTagName("archivo").getLength()==0) {
+						if (archivos.getElementsByTagName("archivo").getLength() == 0) {
 							System.out.println("No tienes archivos subidos todavía fiera.");
 						} else {
 							System.out.print("Introduce el nombre del archivo que quieres descargar: ");
@@ -156,7 +157,8 @@ public class Cliente {
 							oos.flush();
 							existe = ois.readBoolean();
 							while (!existe) {
-								System.out.print("Error, ese archivo no existe. ¿Estás seguro de que lo has escrito bien? Introdúcelo de nuevo: ");
+								System.out.print(
+										"Error, ese archivo no existe. ¿Estás seguro de que lo has escrito bien? Introdúcelo de nuevo: ");
 								linea = sc.nextLine();
 								oos.write((linea + "\r\n").getBytes());
 								oos.flush();
@@ -176,7 +178,7 @@ public class Cliente {
 							try (FileOutputStream fos = new FileOutputStream(direc + "/" + archivoAdescargar)) {
 								int leidos = ois.read(buff);
 								int enviados = 0;
-								while (leidos != -1 && enviados<size) {
+								while (leidos != -1 && enviados < size) {
 									fos.write(buff, 0, leidos);
 									enviados = enviados + leidos;
 									leidos = ois.read(buff);
@@ -186,20 +188,31 @@ public class Cliente {
 							System.out.println(mensaje);
 						}
 						break;
-					case 4:		//BORRAR UN ARCHIVO:
-						System.out.print("Introduce el nombre del archivo que quieres descargar: ");
-						linea = sc.nextLine();
-						oos.write((linea + "\r\n").getBytes());
-						oos.flush();
-						existe = ois.readBoolean();
-						while (!existe) {
-							System.out.print("Error, ese archivo no existe. ¿Estás seguro de que lo has escrito bien? Introdúcelo de nuevo: ");
+					case 4: // BORRAR UN ARCHIVO:
+						archivos = (Element) ois.readObject();
+						if (archivos.getElementsByTagName("archivo").getLength() == 0) {
+							System.out.println("No tienes archivos subidos todavía fiera.");
+						} else {
+							System.out.print("Introduce el nombre del archivo que quieres borrar: ");
 							linea = sc.nextLine();
 							oos.write((linea + "\r\n").getBytes());
 							oos.flush();
 							existe = ois.readBoolean();
+							while (!existe) {
+								System.out.print(
+										"Error, ese archivo no existe. ¿Estás seguro de que lo has escrito bien? Introdúcelo de nuevo: ");
+								linea = sc.nextLine();
+								oos.write((linea + "\r\n").getBytes());
+								oos.flush();
+								existe = ois.readBoolean();
+							}
+							if(ois.readBoolean()) {
+								System.out.println("Archivo borrado correctamente.");
+							} else {
+								System.out.println("Parece que no se ha podido borrar el archivo.");
+							}
+							
 						}
-						System.out.println("ese archivo si existe mi pana");
 						break;
 					case 5:
 						System.out.println(
