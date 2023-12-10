@@ -35,7 +35,7 @@ public class Cliente {
 					linea = sc.nextLine();
 					option = Integer.parseInt(linea);
 				} catch (NumberFormatException nfe) {
-					System.out.println("Introduce un número válido");
+					System.out.print("Introduce un número válido: ");
 				}
 			}
 

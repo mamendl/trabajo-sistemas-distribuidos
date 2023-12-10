@@ -65,6 +65,7 @@ public class AtenderPeticion implements Runnable {
 									//System.out.println(clave.equals(c.getTextContent()));
 								} else {
 									oos.write("Contraseña incorrecta\r\n".getBytes());
+									oos.flush();
 								}
 							}
 							i++;
@@ -73,9 +74,12 @@ public class AtenderPeticion implements Runnable {
 						if (corresto) {
 							this.usuario = usuario;
 							oos.write("Te has loggeado correctamente\r\n".getBytes());
+							oos.flush();
 						}
+						
 						if (!encontrado) {
 							oos.write("Error: usuario no encontrado\r\n".getBytes());
+							oos.flush();
 						}
 
 						oos.writeBoolean(corresto);
@@ -84,6 +88,7 @@ public class AtenderPeticion implements Runnable {
 						if (!corresto) {
 							usuario = ois.readLine();
 							clave = ois.readLine();
+							encontrado = false;
 						}
 						
 					}
@@ -239,12 +244,11 @@ public class AtenderPeticion implements Runnable {
 									leidos = fos.read(buff);
 									oos.flush();
 								}
-								System.out.println("apañao");
 								oos.write("\u001a".getBytes());
 								oos.flush();
 							}
 
-							oos.write("Archivo mandado con éxito.\r\n".getBytes());
+							oos.write("Archivo mandado correctamente.\r\n".getBytes());
 							oos.flush();
 						}
 						break;
