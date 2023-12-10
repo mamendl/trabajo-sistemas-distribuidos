@@ -183,15 +183,15 @@ public class Cliente {
 							linea = sc.nextLine();
 							if (linea.equalsIgnoreCase("cancelar")) {
 								cancelar = true;
+								oos.writeBoolean(cancelar);
+								oos.flush();
 							} else {
+								oos.writeBoolean(cancelar);
+								oos.flush();
 								oos.write((linea + "\r\n").getBytes());
 								oos.flush();
 								existe = ois.readBoolean();
 							}
-							System.out.println("ay");
-							oos.writeBoolean(cancelar);
-							System.out.println("asdf");
-							oos.flush();
 						}
 						
 						

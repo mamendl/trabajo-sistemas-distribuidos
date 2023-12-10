@@ -145,9 +145,7 @@ public class AtenderPeticion implements Runnable {
 				oos.flush();
 				// oos.writeBoolean(corresto);
 				// oos.flush();
-				
-				
-				
+
 				String suXml = "src/datos/" + this.usuario + "/" + this.usuario + ".xml";
 				boolean borrado = false;
 				File xml = new File(suXml);
@@ -155,13 +153,14 @@ public class AtenderPeticion implements Runnable {
 				Element raiz = docu.getDocumentElement();
 
 				while (op != 6 && !borrado) {
-					
+
 					op = ois.readInt();
-					
+
 					switch (op) {
 					case 1:
 						// enviar su xml
 						oos.writeObject(docu);
+						oos.flush();
 						break;
 					case 2:
 						// recibir y añadir a su xml
@@ -173,90 +172,94 @@ public class AtenderPeticion implements Runnable {
 						String nombre = ois.readLine();
 						String tam = ois.readLine();
 
-						
 						boolean subido = existeElElemento(nombre, "archivo", suXml);
 
-						if (!subido) {
-							oos.writeBoolean(true);
-							oos.flush();
-							try (FileOutputStream fos = new FileOutputStream(
-									new File("src/datos/" + usuario + "/" + nombre))) {
-								byte[] buff = new byte[1024 * 1024];
-								int leidos = ois.read(buff);
-								int escritos = 0;
-								while (leidos != -1 && escritos < Integer.parseInt(tam)) { //
-									escritos = escritos + leidos;
-									fos.write(buff, 0, leidos);
-									leidos = ois.read(buff);
-								}
-							}
-
-							// añadir al xml:
-
-							Element archivo = docu.createElement("archivo");
-							Element nom = docu.createElement("nombre");
-							nom.setTextContent(nombre);
-							Element size = docu.createElement("size");
-							size.setTextContent(tam);
-							archivo.appendChild(nom);
-							archivo.appendChild(size);
-							raiz.appendChild(archivo);
-
-							TransformerFactory tf = TransformerFactory.newInstance();
-							Transformer t = tf.newTransformer();
-							DOMSource source = new DOMSource(raiz);
-							StreamResult result = new StreamResult(
-									new File("src/datos/" + usuario + "/" + usuario + ".xml"));
-							t.transform(source, result);
-
-							oos.write("Archivo subido correctamente.\r\n".getBytes());
-						} else {
+						if (subido) {
 							oos.writeBoolean(false);
+							oos.flush();
 							oos.write("Ese archivo ya lo has subido fiera.\r\n".getBytes());
+							oos.flush();
+							break;
 						}
+
+						oos.writeBoolean(true);
+						oos.flush();
+						try (FileOutputStream fos = new FileOutputStream(
+								new File("src/datos/" + usuario + "/" + nombre))) {
+							byte[] buff = new byte[1024 * 1024];
+							int leidos = ois.read(buff);
+							int escritos = 0;
+							while (leidos != -1 && escritos < Integer.parseInt(tam)) { //
+								escritos = escritos + leidos;
+								fos.write(buff, 0, leidos);
+								leidos = ois.read(buff);
+							}
+						}
+
+						// añadir al xml:
+
+						Element archivo = docu.createElement("archivo");
+						Element nom = docu.createElement("nombre");
+						nom.setTextContent(nombre);
+						Element size = docu.createElement("size");
+						size.setTextContent(tam);
+						archivo.appendChild(nom);
+						archivo.appendChild(size);
+						raiz.appendChild(archivo);
+
+						TransformerFactory tf = TransformerFactory.newInstance();
+						Transformer t = tf.newTransformer();
+						DOMSource source = new DOMSource(raiz);
+						StreamResult result = new StreamResult(
+								new File("src/datos/" + usuario + "/" + usuario + ".xml"));
+						t.transform(source, result);
+
+						oos.write("Archivo subido correctamente.\r\n".getBytes());
 						oos.flush();
 
 						break;
 					case 3:
 						cancelar = false;
 						oos.writeObject(raiz);
-						if (raiz.getElementsByTagName("archivo").getLength() == 0) break;
+						oos.flush();
+						if (raiz.getElementsByTagName("archivo").getLength() == 0)
+							break;
 
-							String nombreArchivo = ois.readLine();
-							File archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
-							boolean existe = archivoAmandar.exists();
+						String nombreArchivo = ois.readLine();
+						File archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+						boolean existe = archivoAmandar.exists();
+						oos.writeBoolean(existe);
+						oos.flush();
+						cancelar = ois.readBoolean();
+						while (!existe && !cancelar) {
+							nombreArchivo = ois.readLine();
+							archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
+							existe = archivoAmandar.exists();
 							oos.writeBoolean(existe);
 							oos.flush();
 							cancelar = ois.readBoolean();
-							while (!existe && !cancelar) {
-								nombreArchivo = ois.readLine();
-								archivoAmandar = new File("src/datos/" + usuario + "/" + nombreArchivo);
-								existe = archivoAmandar.exists();
-								oos.writeBoolean(existe);
-								oos.flush();
-								cancelar = ois.readBoolean();
-							}
-							if (cancelar)
-								break;
-							// lo manda
-							byte[] buff = new byte[1024 * 1024];
-							try (FileInputStream fos = new FileInputStream(archivoAmandar)) {
-								oos.write((archivoAmandar.length() + "\r\n").getBytes());
-								int leidos = fos.read(buff);
-								int enviados = 0;
-								while (enviados < archivoAmandar.length()) {
-									oos.write(buff, 0, leidos);
-									enviados = enviados + leidos;
-									leidos = fos.read(buff);
-									oos.flush();
-								}
-								oos.write("\u001a".getBytes());
+						}
+						if (cancelar)
+							break;
+						// lo manda
+						byte[] buff = new byte[1024 * 1024];
+						try (FileInputStream fos = new FileInputStream(archivoAmandar)) {
+							oos.write((archivoAmandar.length() + "\r\n").getBytes());
+							int leidos = fos.read(buff);
+							int enviados = 0;
+							while (enviados < archivoAmandar.length()) {
+								oos.write(buff, 0, leidos);
+								enviados = enviados + leidos;
+								leidos = fos.read(buff);
 								oos.flush();
 							}
-
-							oos.write("Archivo mandado correctamente.\r\n".getBytes());
+							oos.write("\u001a".getBytes());
 							oos.flush();
-						
+						}
+
+						oos.write("Archivo mandado correctamente.\r\n".getBytes());
+						oos.flush();
+
 						break;
 					case 4:
 						// borrar archivo
@@ -306,30 +309,32 @@ public class AtenderPeticion implements Runnable {
 
 						if (!borrado)
 							break;
-						
+
 						i = 0;
-						
-						File carpeta = new File("src/datos/"+this.usuario);
-						
-						for(File file : carpeta.listFiles()) {
-							System.out.println(file.delete());
-							
+
+						File carpeta = new File("src/datos/" + this.usuario);
+
+						for (File file : carpeta.listFiles()) {
+							file.delete();
 						}
-						
-						if(carpeta.delete()) oos.write("Usuario eliminado correctamente.\r\n".getBytes());
-						else oos.write("Ha habido un problema borrando tu carpetita.\r\n".getBytes());
+
+						if (carpeta.delete()) {
+							ar = root.getElementsByTagName("usuario");
+							do {
+								Element arc = (Element) ar.item(i);
+								if (arc.getElementsByTagName("nombre").item(0).getTextContent().equals(this.usuario)) {
+									arc.getParentNode().removeChild(arc);
+									encontrado = true;
+								}
+								i++;
+							} while (i < ar.getLength() && !encontrado);
+							guardarElXml(root, "src/datos/usuarios.xml");
+							oos.write("Usuario eliminado correctamente.\r\n".getBytes());
+						} else {
+							oos.write("Ha habido un problema borrando tu carpetita.\r\n".getBytes());
+						}
 						oos.flush();
-						
-						ar = root.getElementsByTagName("usuario");
-						do{ 
-							Element arc = (Element) ar.item(i);
-							if(arc.getElementsByTagName("nombre").item(0).getTextContent().equals(this.usuario)) {
-								arc.getParentNode().removeChild(arc); 
-								encontrado = true; 
-							} 
-							i++; 
-						} while(i< ar.getLength() && !encontrado); 
-						guardarElXml(root,"src/datos/usuarios.xml");
+
 						break;
 					}
 
