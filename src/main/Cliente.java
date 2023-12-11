@@ -43,6 +43,7 @@ public class Cliente {
 
 			oos.writeInt(option);
 			oos.flush();
+			
 			if (option == 3)
 				System.exit(0);
 
@@ -50,6 +51,13 @@ public class Cliente {
 
 			String mensaje = "";
 
+			if(option==1) {
+				if(!ois.readBoolean()) {
+					System.out.println("No hay usuarios actualmente en nuestra base de datos, vas a tener que registrarte.");
+					option=2;	
+				}
+			}
+			
 			while (!correcto) {
 				System.out.print("Usuario: ");
 				String nom = sc.nextLine();
@@ -122,7 +130,7 @@ public class Cliente {
 
 						while ((!arch.exists() || arch.isDirectory()) && !cancelar) {
 							System.out.print(
-									"Error, archivo no encontrado. Introdúcleo de nuevo (escribe cancelar para volver al menú): ");
+									"Archivo no encontrado. Introdúcelo de nuevo (escribe cancelar para volver al menú): ");
 							ar = sc.nextLine();
 							arch = new File(ar);
 							if (ar.equalsIgnoreCase("cancelar")) {

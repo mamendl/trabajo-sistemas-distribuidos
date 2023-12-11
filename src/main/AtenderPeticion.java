@@ -36,16 +36,25 @@ public class AtenderPeticion implements Runnable {
 			int op = ois.readInt();
 
 			if (op != 3) {
-
-				String usuario = ois.readLine();
-				String clave = ois.readLine();
-
+				
 				File f = new File("src/datos/usuarios.xml");
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				Document d = db.parse(f);
 				Element root = d.getDocumentElement();
 
+				if(op==1&&root.getElementsByTagName("usuario").getLength()==0) {
+					oos.writeBoolean(false);
+					oos.flush();
+					op=2;
+				} else {
+					oos.writeBoolean(true);
+					oos.flush();
+				}
+				
+				String usuario = ois.readLine();
+				String clave = ois.readLine();
+				
 				boolean corresto = false;
 				boolean encontrado = false;
 
